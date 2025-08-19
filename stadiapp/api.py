@@ -34,3 +34,6 @@ def delete_stadium(request, stadium_id: int):
     stadium.delete()
     return {"success": True}
 
+@api.get("/healthcheck")
+def health_check(request):
+    return {"status": "ok"}
