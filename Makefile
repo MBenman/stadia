@@ -2,14 +2,13 @@
 VENV = venv
 PYTHON = python3
 PIP = $(VENV)/bin/pip
+DOCKER = docker
 
-run: $(VENV)/bin/activate
-	$(PYTHON) manage.py runserver
+run:
+	$(DOCKER) compose up --build
+	$(DOCKER) compose run django-web $(PYTHON) manage.py makemigrations 
+	$(DOCKER) compose run django-web $(PYTHON) manage.py migrate 
 
-venv/bin/activate: requirements.txt
-	$(PYTHON) -m venv $(VENV)
-	$(PIP) install -r requirements.txt
 
 clean:
 	rm -rf __pycache__
-	rm -rf $(VENV)
