@@ -3,7 +3,7 @@ from .models import Stadium
 from .schemas import StadiumSchema, CreateStadiumSchema
 from django.shortcuts import get_object_or_404 
 
-api = NinjaAPI()
+api = NinjaAPI(version='1.0.0')
 
 @api.get("/stadiums", response=list[StadiumSchema])
 def list_stadiums(request):
