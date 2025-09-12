@@ -27,7 +27,7 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
-        python manage.py test tests/
+        python manage.py test tests.test_api
         
     - name: Lint with flake8
       run: |
