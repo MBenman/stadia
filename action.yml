@@ -1,0 +1,12 @@
+name: 'Stadia API Action'
+description: 'Run Stadia API service'
+inputs:
+  command:
+    description: 'Command to run'
+    required: false
+    default: ''
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.command }}

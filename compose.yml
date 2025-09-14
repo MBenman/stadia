@@ -15,6 +15,8 @@ services:
   django-web:
     build: .
     container_name: stadia
+    # Override the entrypoint for local development
+    entrypoint: []
     command: gunicorn --bind 0.0.0.0:8000 --workers 3 stadiapi.wsgi:application --reload
     ports:
       - "8000:8000"
