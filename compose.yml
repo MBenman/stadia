@@ -11,15 +11,19 @@ services:
       - postgres_data:/var/lib/postgresql/data
     env_file:
       - .env
+    networks:
+      - stadia-network
   
-  django-web:
-    build: .
-    container_name: stadia
+  django-web-1:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: stadia-1
     # Override the entrypoint for local development
     entrypoint: []
     command: gunicorn --bind 0.0.0.0:8000 --workers 3 stadiapi.wsgi:application --reload
     ports:
-      - "8000:8000"
+      - "8081:8000"
     depends_on:
       - db
     environment:
@@ -44,5 +48,67 @@ services:
         retries: 3
     volumes:
       - .:/app/
+    networks:
+      - stadia-network
+  
+  django-web-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: stadia-2
+    # Override the entrypoint for local development
+    entrypoint: []
+    command: gunicorn --bind 0.0.0.0:8000 --workers 3 stadiapi.wsgi:application --reload
+    ports:
+      - "8082:8000"
+    depends_on:
+      - db
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      DJANGO_LOGLEVEL: ${DJANGO_LOGLEVEL}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS}
+      DATABASE_ENGINE: ${DATABASE_ENGINE}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+    env_file:
+      - .env
+    healthcheck:
+        test: "${DOCKER_WEB_HEALTHCHECK_TEST:-curl localhost:8000/up}"
+        interval: "60s"
+        timeout: "3s"
+        start_period: "5s"
+        retries: 3
+    volumes:
+      - .:/app/
+    networks:
+      - stadia-network
+
+  nginx-lb:
+    image: nginx:alpine
+    container_name: stadia-nginx-lb
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - django-web-1
+      - django-web-2
+    networks:
+      - stadia-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
 volumes:
    postgres_data:
+
+networks:
+  stadia-network:
+    driver: bridge
